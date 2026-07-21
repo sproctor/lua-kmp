@@ -127,7 +127,7 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - name: Collect JVM native libraries from all runners
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: jni-*
           path: build/jniStaging/
