@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.seanproctor"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
 
 // ---------------------------------------------------------------------------
 // The Android target needs an SDK; enable it only where one is available so
@@ -92,6 +92,13 @@ kotlin {
             }
         }
     }
+}
+
+// The def file's inline section #includes the vendored sources; cinterop only
+// tracks the def file itself, so declare them as inputs for correct rebuilds.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.CInteropProcess>().configureEach {
+    inputs.dir("native/lua/src")
+    inputs.dir("native/shim")
 }
 
 if (androidEnabled) {

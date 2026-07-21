@@ -31,7 +31,12 @@
 #include "lundump.c"
 #include "ldump.c"
 #include "lstate.c"
+/* lgc.c's internal static getmode() clashes with the BSD getmode() that the
+   macOS/iOS SDK unistd.h declares (pulled in later via liolib.c) when
+   everything shares one translation unit. Rename Lua's out of the way. */
+#define getmode luakmp_gc_getmode
 #include "lgc.c"
+#undef getmode
 #include "llex.c"
 #include "lcode.c"
 #include "lparser.c"

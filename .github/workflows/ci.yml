@@ -132,8 +132,8 @@ jobs:
           pattern: jni-*
           path: build/jniStaging/
           merge-multiple: true
-      - name: Publish all targets to Maven Central
-        run: ./gradlew publishToMavenCentral
+      - name: Publish and release all targets to Maven Central
+        run: ./gradlew publishAndReleaseToMavenCentral
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
