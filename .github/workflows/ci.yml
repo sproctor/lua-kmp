@@ -25,7 +25,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test (linuxX64, jvm, android assemble, mingw compile)
         run: ./gradlew linuxX64Test jvmTest assembleRelease compileKotlinMingwX64
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: jni-linux-x86_64
           path: build/jniStaging/
@@ -42,7 +42,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test JVM on arm64
         run: ./gradlew jvmTest
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: jni-linux-aarch64
           path: build/jniStaging/
@@ -59,7 +59,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test (macOS, iOS simulator, jvm)
         run: ./gradlew macosArm64Test iosSimulatorArm64Test jvmTest compileKotlinIosArm64
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: jni-macos
           path: build/jniStaging/
@@ -84,7 +84,7 @@ jobs:
         run: echo "${{ steps.msys2.outputs.msys2-location }}/mingw64/bin" >> "$GITHUB_PATH"
       - name: Build and test (mingwX64, jvm)
         run: ./gradlew mingwX64Test jvmTest
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: jni-windows-x86_64
           path: build/jniStaging/
