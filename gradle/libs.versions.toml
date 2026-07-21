@@ -4,7 +4,7 @@ kotlin = "2.4.10"
 # integration in favor of com.android.kotlin.multiplatform.library, which
 # does not support externalNativeBuild/CMake yet; stay on the 8.x line until
 # the new plugin can package our JNI library.
-agp = "8.13.2"
+agp = "9.3.0"
 android-compileSdk = "36"
 # fseeko/ftello (used by Lua's io library) need API 24+ on 32-bit ABIs.
 android-minSdk = "24"
