@@ -195,8 +195,9 @@ and for the Android target an SDK with NDK (set `ANDROID_HOME` or
 Tag `v*` and CI publishes every target to Maven Central (portal API) from a
 macOS runner, merging the JVM native libraries staged by the Linux, macOS,
 and Windows jobs. Required repository secrets: `MAVEN_CENTRAL_USERNAME`,
-`MAVEN_CENTRAL_PASSWORD`, `SIGNING_IN_MEMORY_KEY`,
-`SIGNING_IN_MEMORY_KEY_PASSWORD`.
+`MAVEN_CENTRAL_PASSWORD`, `SIGNING_IN_MEMORY_KEY` (base64 of the binary
+secret keyring, e.g. `base64 -w0 < secring.gpg`), `SIGNING_IN_MEMORY_KEY_ID`
+(the short 8-char key id), and `SIGNING_IN_MEMORY_KEY_PASSWORD`.
 
 ## License
 
