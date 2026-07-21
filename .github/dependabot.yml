@@ -7,6 +7,18 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # AGP 9 requires com.android.kotlin.multiplatform.library, which cannot
+      # build our CMake JNI library yet; stay on the 8.x line.
+      - dependency-name: "com.android.library"
+        update-types: ["version-update:semver-major"]
+      # Gradle 9.6+ removed internal APIs that AGP 8.x depends on; allow only
+      # 9.5.x patches until the AGP 9 migration. (Both names, to be robust to
+      # how the wrapper dependency is reported.)
+      - dependency-name: "gradle"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "gradle-wrapper"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
