@@ -1,0 +1,13 @@
+# Keeps libs.versions.toml, the Gradle wrapper, and workflow actions on the
+# latest releases. (Chosen over the refreshVersions plugin: Dependabot
+# understands version catalogs natively and needs no build-script footprint.)
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
