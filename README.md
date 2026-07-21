@@ -162,6 +162,13 @@ If your scripts come from 5.4, the main script-facing changes are:
   `utf8.offset`, and incremental major GC. Binary chunks are refused by this
   binding (`load` accepts text only).
 
+## Sample
+
+A runnable feature tour lives in [`sample/`](sample/): the same `commonMain`
+demo runs on the JVM (`./gradlew :sample:runJvm`) and as a native executable
+(`./gradlew :sample:runDebugExecutableLinuxX64`, `...MacosArm64`, …),
+printing identical output on every backend.
+
 ## Building from source
 
 Requirements: JDK 17+, a C toolchain (`cc`/gcc/clang; MinGW gcc on Windows),
