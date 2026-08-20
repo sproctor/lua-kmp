@@ -127,22 +127,28 @@ data class JniHostSpec(val key: String, val libName: String, val compilerArgs: L
 
 val hostOs: OperatingSystem = OperatingSystem.current()
 val hostArch: String = when (val a = System.getProperty("os.arch").lowercase()) {
-    "amd64", "x86_64" -> "x86_64"
+    "amd64", "x86_64", "x86-64" -> "x86_64"
     "aarch64", "arm64" -> "aarch64"
-    else -> a
+    // NativeLibLoader throws on anything else, so a binary staged under some
+    // other key could never be loaded. Say so here instead of building one.
+    else -> error("lua-kmp: unsupported build host architecture: $a")
 }
 
+// These keys have to match what NativeLibLoader looks up at runtime
+// (native/<os>-<arch>/), or the jar carries a library nothing can find.
 val jniHostSpecs: List<JniHostSpec> = when {
     hostOs.isLinux -> listOf(
         JniHostSpec("linux-$hostArch", "libluakmp.so", listOf("-fPIC", "-shared", "-DLUA_USE_LINUX"), listOf("-lm", "-ldl"))
     )
+    // macOS cross-compiles both arches from either host, so it is not $hostArch.
     hostOs.isMacOsX -> listOf(
         JniHostSpec("macos-aarch64", "libluakmp.dylib", listOf("-dynamiclib", "-arch", "arm64", "-DLUA_USE_MACOSX"), emptyList()),
         JniHostSpec("macos-x86_64", "libluakmp.dylib", listOf("-dynamiclib", "-arch", "x86_64", "-DLUA_USE_MACOSX"), emptyList()),
     )
-    else -> listOf(
-        JniHostSpec("windows-x86_64", "luakmp.dll", listOf("-shared"), listOf("-lm"))
+    hostOs.isWindows -> listOf(
+        JniHostSpec("windows-$hostArch", "luakmp.dll", listOf("-shared"), listOf("-lm"))
     )
+    else -> error("lua-kmp: unsupported build host operating system: ${hostOs.name}")
 }
 
 fun javaIncludeDirs(): List<File> {
@@ -204,6 +210,25 @@ tasks.named("jvmProcessResources") {
 // Publishing: Maven Central portal, per-target artifacts under
 // com.seanproctor:lua-kmp*. Signing activates only when keys are configured.
 // ---------------------------------------------------------------------------
+// A release is only complete with the Android artifacts: lua-kmp-android and
+// lua-kmp-android-jni. Both are gated on an SDK being present, so a publish
+// from a host without one would put lua-kmp on Maven Central missing them, and
+// a Central release cannot be retracted. Fail instead. mavenLocal is exempt -
+// a partial local install is trivially fixed and is useful while developing.
+if (!androidEnabled) {
+    tasks
+        .matching { it.name.startsWith("publish") && !it.name.endsWith("ToMavenLocal") }
+        .configureEach {
+            doFirst {
+                throw GradleException(
+                    "Refusing to publish without the Android target: no Android SDK found. " +
+                        "Set ANDROID_HOME or sdk.dir in local.properties, or this release would " +
+                        "ship lua-kmp without lua-kmp-android and lua-kmp-android-jni.",
+                )
+            }
+        }
+}
+
 mavenPublishing {
     publishToMavenCentral()
     if (providers.gradleProperty("signingInMemoryKey").isPresent) {
