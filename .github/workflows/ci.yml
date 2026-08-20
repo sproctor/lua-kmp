@@ -23,12 +23,15 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v6
+      # The KMP android plugin publishes a single variant, so the root has no
+      # assembleRelease any more - :assemble covers it. :android-jni still has
+      # the classic debug/release split.
       - name: Build and test (linuxX64, jvm, android assemble, mingw compile)
-        run: ./gradlew linuxX64Test jvmTest assembleRelease compileKotlinMingwX64
+        run: ./gradlew linuxX64Test jvmTest :lua-kmp:assemble :android-jni:assembleRelease compileKotlinMingwX64
       - uses: actions/upload-artifact@v7
         with:
           name: jni-linux-x86_64
-          path: build/jniStaging/
+          path: lua-kmp/build/jniStaging/
           if-no-files-found: error
 
   linux-arm64:
@@ -45,7 +48,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: jni-linux-aarch64
-          path: build/jniStaging/
+          path: lua-kmp/build/jniStaging/
           if-no-files-found: error
 
   macos:
@@ -62,7 +65,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: jni-macos
-          path: build/jniStaging/
+          path: lua-kmp/build/jniStaging/
           if-no-files-found: error
 
   windows:
@@ -87,7 +90,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: jni-windows-x86_64
-          path: build/jniStaging/
+          path: lua-kmp/build/jniStaging/
           if-no-files-found: error
 
   android-emulator:
@@ -104,12 +107,29 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Run commonTest on an emulator
+      # google_apis_ps16k is the 16 KB page size system image. The default
+      # images run a 4 KB page, which is exactly the configuration that let a
+      # 4 KB-aligned libluakmp.so ship in 0.1.0 without any job going red.
+      - name: Run commonTest on a 16 KB page size emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 36
+          target: google_apis_ps16k
           arch: x86_64
-          script: ./gradlew connectedDebugAndroidTest
+          script: |
+            # Confirm the image really is 16 KB before trusting a green run:
+            # a silent fall back to a 4 KB emulator would pass for the wrong
+            # reason and put us straight back where 0.1.0 was.
+            page_size=$(adb shell getconf PAGE_SIZE | tr -d '\r')
+            echo "emulator page size: $page_size"
+            if [ "$page_size" != "16384" ]; then
+              echo "::error::expected a 16 KB page size emulator, got $page_size"
+              exit 1
+            fi
+            # Must be the root's task: connectedDebugAndroidTest now only
+            # exists in :android-jni, which has no tests, so it would pass
+            # without running any of commonTest.
+            ./gradlew :lua-kmp:connectedAndroidDeviceTest
 
   # Publishing runs on macOS because only a macOS host can process the
   # cinterop for every Kotlin/Native target (Apple sysroots are macOS-only,
@@ -130,7 +150,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: jni-*
-          path: build/jniStaging/
+          path: lua-kmp/build/jniStaging/
           merge-multiple: true
       - name: Publish and release all targets to Maven Central
         run: ./gradlew publishAndReleaseToMavenCentral

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(luakmp C)
 
-set(NATIVE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../native)
+set(NATIVE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../native)
 
 add_library(luakmp SHARED
     ${NATIVE_DIR}/shim/lua_all.c
