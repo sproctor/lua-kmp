@@ -24,7 +24,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":"))
+            implementation(project(":lua-kmp"))
         }
     }
 }

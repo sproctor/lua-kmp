@@ -178,16 +178,24 @@ and for the Android target an SDK with NDK (set `ANDROID_HOME` or
 ```sh
 ./gradlew build                # everything buildable on this host, plus tests
 ./gradlew linuxX64Test jvmTest # the local test matrix on Linux
-./gradlew assembleRelease      # the Android AAR
+./gradlew :lua-kmp:assemble :android-jni:assembleRelease   # the Android AARs
 ```
+
+The build is three modules: `:lua-kmp` is the library, `:sample` the feature
+tour, and `:android-jni` an AAR that contains nothing but `libluakmp.so` for
+each ABI. That split is not cosmetic - the Android KMP Gradle plugin cannot run
+a CMake build, so the CMake build lives in `:android-jni` under the classic
+`com.android.library` plugin and `androidMain` depends on it at runtime. Android
+consumers therefore resolve two artifacts, `lua-kmp-android` and
+`lua-kmp-android-jni`, and the two are always released together.
 
 - Apple targets build and test on macOS hosts only.
 - `native/revendor.sh` re-downloads and verifies the pinned Lua release into
   `native/lua/` (update `LUA_VERSION`/`LUA_SHA256` there to move versions).
 - The vendored sources compile once per target: cinterop packs them into each
-  Kotlin/Native klib (see `src/nativeInterop/cinterop/lua.def`), CMake builds
+  Kotlin/Native klib (see `lua-kmp/src/nativeInterop/cinterop/lua.def`), CMake builds
   the Android `.so`, and a per-host Gradle task builds the JVM JNI library
-  into `build/jniStaging/`, which is bundled into the jvm jar under
+  into `lua-kmp/build/jniStaging/`, which is bundled into the jvm jar under
   `native/<os>-<arch>/`.
 
 ## Releasing
