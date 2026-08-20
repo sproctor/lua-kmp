@@ -116,20 +116,9 @@ jobs:
           api-level: 36
           target: google_apis_ps16k
           arch: x86_64
-          script: |
-            # Confirm the image really is 16 KB before trusting a green run:
-            # a silent fall back to a 4 KB emulator would pass for the wrong
-            # reason and put us straight back where 0.1.0 was.
-            page_size=$(adb shell getconf PAGE_SIZE | tr -d '\r')
-            echo "emulator page size: $page_size"
-            if [ "$page_size" != "16384" ]; then
-              echo "::error::expected a 16 KB page size emulator, got $page_size"
-              exit 1
-            fi
-            # Must be the root's task: connectedDebugAndroidTest now only
-            # exists in :android-jni, which has no tests, so it would pass
-            # without running any of commonTest.
-            ./gradlew :lua-kmp:connectedAndroidDeviceTest
+          # Checks the page size, then runs :lua-kmp:connectedAndroidDeviceTest.
+          # It has to be a file: this action runs `script` one line per `sh -c`.
+          script: .github/scripts/device-tests.sh
 
   # Publishing runs on macOS because only a macOS host can process the
   # cinterop for every Kotlin/Native target (Apple sysroots are macOS-only,
